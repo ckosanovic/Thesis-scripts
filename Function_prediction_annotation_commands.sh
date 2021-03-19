@@ -18,12 +18,10 @@ cp ../RNAmmer/RCC138_chromosome_correct_polarity.fsa ./
 ## concatenate tRNA, RNAmmer and Annotation files into new file
 cat RCC* Annotations.gff3 > all_genes.gff3 
 
-
 ## Split the WebApollo GFF3 file and create a GFF3 (.gff3) and a FASTA (.fsa) file per contig ##  
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
 chmod +x splitGFF3.pl 
 ./splitGFF3.pl -g all_genes.gff3  
-
 
 ## Store .gff3 files from current directory in separate directory ## 
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
@@ -31,7 +29,6 @@ mkdir CAT
 mv all_genes.gff3 CAT/
 mv Annotations.gff3 CAT/
 mv RCC* CAT/
-
 
 ## Converting WebApollo GFF3 annotations to EBML format ##
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
@@ -46,12 +43,33 @@ cat *.prot > all_proteins.prot
 mkdir PROT_QUERIES
 mv all_proteins.prot PROT_QUERIES/ 
 
+## Initial check to detect annotation errors
+## Searching for proteins interrupted by stop codons and proteins that do not start with methionines
+check_problems.pl -s -m -f *.prot
+## All issues detected were manually fixed in Apollo and updated annotations exported 
+
+## From this point, EMBLtoPROT.pl is used for any corrections/updates made to proteins.
+## This script exports proteins directly from the EMBL files.
+## NOTE: The EMBL (*.embl) and corresponding FASTA (*.fsa) files must be in the same folder.
+./EMBLtoPROT.pl -e *.embl -c 1
+
 ### Function prediction ### 
 
 ## Predicting functions with InterProScan 5 (v5.44-79.0)
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot/PROT_QUERIES
 chmod +x interproscan.sh
 ./interproscan.sh
+
+## Running InterProScan 5 searches from interproscan.sh
+echo 'PROT_QUERIES InterProScan started on:' >> interproscan.log; date >> interproscan.log
+/media/FatCat/interproscan-5.44-79.0/interproscan.sh \
+-cpu 16 \
+-i all_proteins.prot \
+-iprlookup \
+-goterms \
+-pa \
+-b all_proteins.interpro
+echo 'PROT_QUERIES InterProScan completed on:' >> interproscan.log; date >> interproscan.log
 
 ## Downloading the SwissProt/UniProt databases
 cd /media/FatCat/UniProt
@@ -61,7 +79,7 @@ cd /media/FatCat/UniProt
 # In /media/FatCat/UniProt
 ./get_uniprot_products.pl uniprot_sprot.fasta.gz uniprot_trembl.fasta.gz
 
-## Create diamond database in separate folder 
+## Designating diamond databases to separate folder 
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
 mkdir diamond 
 
@@ -74,55 +92,100 @@ ln -s /media/FatCat/UniProt/uniprot_trembl.list ./
 
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot/diamond
 
-diamond makedb --in uniprot_sprot.fasta -d uniprot_sprot #Swiss-Prot database 
+diamond makedb --in uniprot_sprot.fasta -d uniprot_sprot ##Swiss-Prot database 
+diamond makedb --in uniprot_trembl.fasta.gz -d uniprot_trembl ##TREMBL database 
+diamond makedb --in GCA_007859695.1_ASM785969v1_protein.faa.gz -d CCMP1205 ##database for reference genome CCMP1205
 
-diamond makedb --in uniprot_trembl.fasta.gz -d uniprot_trembl #TREMBL database 
-
-diamond makedb --in GCA_007859695.1_ASM785969v1_protein.faa.gz -d CCMP1205 #database for reference genome CCMP1205
-
-## Running BLAST searches against SwissPROT and TREMBL 
+## Running BLAST searches against Swiss-Prot, TrEMBL and CCMP1205
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot/diamond
-./uniprot.sh
+./diamond.sh   ####changed name from uniprot.sh
 
-###Contents of uniprot.sh script### 
+###Contents of diamond.sh script### 
 #!/usr/bin/bash
 
 ## Generating lists of all proteins queries; including those with no hits against SwissProt/UniProt
 ./get_queries.pl all_proteins.prot
 
+## Running diamond blastp searches and parsing with parse_UniProt_BLASTs.pl
+
+##Usage options for diamond 
+#  blastp   Align protein query sequences against a protein reference database
+#  -p    Number of CPU threads
+#  -q    Path to the query input file in FASTA or FASTQ format
+#  -d    Path to the DIAMOND database file
+#  -e    Maximum expected value to report an alignment
+#  -k    The maximum number of target sequences per query to report alignments for (default=25)
+#  -f    Format of the output file
+#  -o    Path to the output file
+
+##Usage information and options for parse_UniProt_BLASTs.pl
+#Synopsis: Generates a tab-delimited list of products found/not found with BLAST/DIAMOND searches
+#REQUIREMENTS  BLAST/DIAMOND outfmt 6 format
+#              Tab-separated accession number/product list  ### Can be created with get_uniprot_products.pl
+# USAGE        parse_UniProt_BLASTs.pl -b blast_output -e 1e-10 -q query.list -u uniprot_list -o parsed.tsv
+#  OPTIONS:
+#  -b (--blast)    BLAST/DIAMOND tabular output (outfmt 6)
+#  -e (--evalue)   E-value cutoff [Default: 1e-10]
+#  -q (--query)    List of proteins queried against UniProt
+#  -u (--uniprot)  Tab-delimited list of UniProt accesssion numbers/products
+#  -o (--output)   Desired output name
+
 ## Running searches against Swiss-PROT
 echo 'Querying HOP50 against SwissProt...'
 echo 'HOP50 SwissProt searches started on:' >> swissprot.log; date >> swissprot.log
-diamond blastp -p 10 -q all_proteins.prot -d ./uniprot_sprot.dmnd -e 1e-10 -k 1 -f 6 -o HOP50.sprot.blastp.6
+diamond blastp \
+-p 10 \
+-q all_proteins.prot \
+-d ./uniprot_sprot.dmnd \
+-e 1e-10 \
+-k 1 \
+-f 6 \
+-o HOP50.sprot.blastp.6
 echo 'HOP50 SwissProt searches completed on:' >> swissprot.log; date >> swissprot.log
-./parse_UniProt_BLASTs.pl -q all_proteins.prot.queries -b HOP50.sprot.blastp.6 -e 1e-10 -u uniprot_sprot.list -o HOP50.parsed_sprot.tsv
+./parse_UniProt_BLASTs.pl \
+-q all_proteins.prot.queries \
+-b HOP50.sprot.blastp.6 \
+-e 1e-10 \
+-u uniprot_sprot.list \
+-o HOP50.parsed_sprot.tsv
 
 ## Running searches against TREMBL
 echo 'Querying HOP50 against TREMBL...'
 echo 'HOP50 TREMBL searches started on:' >> trembl.log; date >> trembl.log
-diamond blastp -p 10 -q all_proteins.prot -d ./uniprot_trembl.dmnd  -e 1e-10 -k 1 -f 6 -o HOP50.trembl.blastp.6
+diamond blastp \
+-p 10 \
+-q all_proteins.prot \
+-d ./uniprot_trembl.dmnd \
+-e 1e-10 \
+-k 1 \
+-f 6 \
+-o HOP50.trembl.blastp.6
 echo 'HOP50 TREMBL searches completed on:' >> trembl.log; date >> trembl.log
-./parse_UniProt_BLASTs.pl -q all_proteins.prot.queries -b HOP50.trembl.blastp.6 -e 1e-10 -u uniprot_trembl.list -o HOP50.parsed_trembl.tsv
+./parse_UniProt_BLASTs.pl \
+-q all_proteins.prot.queries \
+-b HOP50.trembl.blastp.6 \
+-e 1e-10 \
+-u uniprot_trembl.list \
+-o HOP50.parsed_trembl.tsv
 
 ## Running searches against CCMP1205
-diamond blastp -p 10 -q all_proteins.prot -d CCMP1205.dmnd -e 1e-10 -k 1 -f 6 -o CCMP1205.blastp.6
-./parse_UniProt_BLASTs.pl -q all_proteins.prot.queries -b CCMP1205.blastp.6 -e 1e-10 -u uniprot_trembl.list (?GCA_*.products) -o parsed_CCMP.tsv
+diamond blastp \
+-p 10 \
+-q all_proteins.prot \
+-d CCMP1205.dmnd \
+-e 1e-10 \
+-k 1 \
+-f 6 \
+-o CCMP1205.blastp.6
 
-###
+./parse_UniProt_BLASTs.pl \
+-q all_proteins.prot.queries \
+-b CCMP1205.blastp.6 \
+-e 1e-10 \
+-u GCA_007859695.1_ASM785969v1_protein.products \
+-o parsed_CCMP.tsv
 
-## USAGE information for parse_UniProt_BLASTs.pl ##
-# Generates a tab-delimited list of products found/not found with BLAST/DIAMOND searches
-# REQUIREMENTS  BLAST/DIAMOND outfmt 6 format
-#                Tab-separated accession number/product list ## Can be created with get_uniprot_products.pl
-# USAGE           parse_UniProt_BLASTs.pl -b blast_output -e 1e-10 -q query.list -u uniprot_list -o parsed.tsv
-#OPTIONS:
-#	-b (--blast)    BLAST/DIAMOND tabular output (outfmt 6)
-#	-e (--evalue)   E-value cutoff [Default: 1e-10]
-#	-q (--query)    List of proteins queried against UniProt
-#	-u (--uniprot)  Tab-delimited list of UniProt accesssion numbers/products
-#	-o (--output)   Desired output name
-
-## Parsing the result of InterProScan 5, SwissProt/UniProt, and reference CCMP1205 searches ##
+##### Parsing the result of InterProScan 5, SwissProt/UniProt, and reference CCMP1205 searches ####
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot/diamond
 ./parse_annotators.pl \
    -q all_proteins.prot.queries \
@@ -146,31 +209,16 @@ diamond blastp -p 10 -q all_proteins.prot -d CCMP1205.dmnd -e 1e-10 -k 1 -f 6 -o
 #                -ip BEOM2.interpro.tsv \\                       ## InterProScan5 searches
 #                -rl reference.list -rb reference.blastp.6       ## Searches agasint reference organism (Optional)
 
-### Curating the annotations
-# In /media/FatCat/ckosanovic/RCC138/Apollo_annot/diamond
-curate_annotations.pl -r -i all_proteins.prot.queries.annotations
-
+### Curating the annotations###
 
 ## USAGE information for curate_annotations.pl
 # Displays lists of functions predicted per proteins. User can select or enter desired annotation.
 # Creates a tab-delimited .curated list of annotations.
-# USAGE           curate_annotations.pl -r -i file.annotations -3D 3d_matches.txt
+# USAGE  curate_annotations.pl -r -i file.annotations -3D 3d_matches.txt
 # OPTIONS:
 #-r      Resumes annotation from last curated locus_tag
 #-i      Input file (generated from parse_annotators.pl)
-#-3D     List of 3D matches from GESAMT searches ## Generated with descriptive_GESAMT_matches.pl
+#-3D     List of 3D matches from GESAMT searches ## Generated with descriptive_GESAMT_matches.pl, not used in this specific analysis
 
-###Further analyses##
-
-##Detect proteins shared between CCMP1205 and RCC138 ##
-
-## Uses the output of diamond blast against CCMP1205 (CCMP1205.blastp.6)
-## Requires a diamond BLAST search of CCMP1205 against our genome RCC138 to generate RCC138.blastp.6
-## Running searches against RCC138
-diamond blastp -p 10 -q GCA_007859695.1_ASM785969v1_protein.faa -d RCC138.dmnd -e 1e-10 -k 1 -f 6 -o RCC138.blastp.6
-
-##Generating lists of shared vs. unique proteins between genomes, comparing the RCC138 protein list against CCMP1205 
-proteins_shared.pl -e  min_evalue  -l all_proteins.prot.queries.annotations.curated -b CCMP1205.blastp.6
-
-##Generating lists of shared vs. unique proteins between genomes, comparing the CCMP1205 protein list against RCC138
-proteins_shared.pl -e  min_evalue  -l GCA_007859695.1_ASM785969v1_protein.products -b RCC138.blastp.6
+# In /media/FatCat/ckosanovic/RCC138/Apollo_annot/diamond
+curate_annotations.pl -r -i all_proteins.prot.queries.annotations
