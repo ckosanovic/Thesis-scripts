@@ -16,7 +16,7 @@
 
 ### Sequence Deposition in NCBI's GenBank ###
 
-##	concatenate the complete list of curated annotations and corresponding locus tag prefixes with the list of tRNAs and rRNAs
+## concatenate the complete list of curated annotations and corresponding locus tag prefixes with the list of tRNAs and rRNAs
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
 cat all_proteins.prot.queries.annotation.curated all_tRNAs.txt all_rRNAs.txt > all_genes.prod
 
@@ -27,9 +27,10 @@ cat all_proteins.prot.queries.annotation.curated all_tRNAs.txt all_rRNAs.txt > a
 # In /media/FatCat/ckosanovic/RCC138/Apollo_annot
 ./EMBLtoTBL.pl -id ITTBIO -p all_genes.prod -embl *.embl 1> STD.log 2>ERROR.log
 #	Options for EMBLtoTBL.pl:
-#		-id			Desired institute ID [default: IITBIO]
-#		-p			Tab-delimited list of locus_tags and their products
-#		-embl		EMBL files to convert
+#		-id    Desired institute ID [default: IITBIO]
+#		-p     Tab-delimited list of locus_tags and their products
+#		-embl  EMBL files to convert
+
 #NOTE: This script prints the standard output in STD.log and any errors detected in the ERROR.log file. 
 
 ##	All errors were fixed manually in Artemis (v18.1.0) and updated .embl were exported directly
@@ -60,4 +61,5 @@ cat all_proteins.prot.queries.annotation.curated all_tRNAs.txt all_rRNAs.txt > a
 -Z discrep \
 -H 12/31/2021 \
 -o RCC138_final_20200827.sqn
+
 # Where the output (-o) is named by organismal strain and submission date in YYYYMMDD format. 
