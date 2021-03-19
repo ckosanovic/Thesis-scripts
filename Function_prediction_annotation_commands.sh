@@ -200,9 +200,9 @@ diamond blastp \
 ## USAGE information for parse_annotators.pl
 ## parses the output of annotators to help assign putative functions to predicted proteins.
 #       Annotators are:
-#		         - BLASTP/DIAMOND searches against SwissProt/trEMBL databases
-#                - InterProScan 5 searches
-#                - BLASTP/DIAMOND searches against reference organism (optional)
+#                 - BLASTP/DIAMOND searches against SwissProt/trEMBL databases
+#                 - InterProScan 5 searches
+#                 - BLASTP/DIAMOND searches against reference organism (optional)
 # USAGE   parse_annotators.pl -q BEOM2.proteins.queries \\
 #                -sl sprot.list -sb BEOM2.sprot.blastp.6 \\      ## Searches against SwissProt
 #                -tl trembl.list -tb BEOM2.trembl.blastp.6 \\    ## Searches against trEMBL
