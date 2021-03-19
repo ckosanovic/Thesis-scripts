@@ -32,7 +32,7 @@ diamond blastp \
 -u uniprot_sprot.list \
 -o parsed_RCC138.tsv
 
-###	DIAMOND BLAST searches were completed previously running RCC138 (query) against CCMP1205 (reference)###
+### DIAMOND BLAST searches were completed previously running RCC138 (query) against CCMP1205 (reference)###
 ## Commands used:
 
 ## Running searches against CCMP1205
@@ -54,23 +54,22 @@ diamond blastp \
 
 ##Detect proteins shared between CCMP1205 and RCC138 from the output of a homology search (DIAMOND)##
 
-##Usage information and options for proteins_shared.pl
-#SYNOPSIS		Determine shared vs. unique proteins from output of a homology search (diamond)
-#USAGE			proteins_shared.pl -e  min_evalue  -l protein_list -b blast_hits
-
+## Usage information and options for proteins_shared.pl
+#SYNOPSIS   Determine shared vs. unique proteins from output of a homology search (diamond)
+#USAGE      proteins_shared.pl -e  min_evalue  -l protein_list -b blast_hits
 #OPTIONS:
-#-e (--evalue)	minimum determined BLAST e-value [default = 1e-10]
-#-l (--list)	list of proteins [and products] queried against database
-#-b (--blast)	BLAST/DIAMOND tabular output (outfmt 6)
+#-e (--evalue)    minimum determined BLAST e-value [default = 1e-10]
+#-l (--list)      list of proteins [and products] queried against database
+#-b (--blast)     BLAST/DIAMOND tabular output (outfmt 6)
 
 
-##Generating lists of shared vs. unique proteins between genomes, comparing the RCC138 protein list against CCMP1205 
+## Generating lists of shared vs. unique proteins between genomes, comparing the RCC138 protein list against CCMP1205 
 proteins_shared.pl \
 -e  min_evalue \
 -l all_proteins.prot.queries.annotations.curated \
 -b CCMP1205.blastp.6
 
-##Generating lists of shared vs. unique proteins between genomes, comparing the CCMP1205 protein list against RCC138
+## Generating lists of shared vs. unique proteins between genomes, comparing the CCMP1205 protein list against RCC138
 proteins_shared.pl \
 -e  min_evalue \
 -l GCA_007859695.1_ASM785969v1_protein.products \
