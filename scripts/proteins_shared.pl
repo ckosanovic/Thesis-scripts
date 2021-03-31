@@ -4,7 +4,7 @@ use strict; use warnings;
 use Getopt::Long qw(GetOptions);
 
 my $name = 'proteins_shared.pl';
-my $version = 0.1;
+my $version = 0.2;
 
 my $options = <<'OPTIONS';
 
