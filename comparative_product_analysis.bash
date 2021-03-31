@@ -65,12 +65,12 @@ diamond blastp \
 
 ## Generating lists of shared vs. unique proteins between genomes, comparing the RCC138 protein list against CCMP1205 
 proteins_shared.pl \
--e  1e-10 \
+-e 1e-10 \
 -l all_proteins.prot.queries.annotations.curated \
 -b CCMP1205.blastp.6
 
 ## Generating lists of shared vs. unique proteins between genomes, comparing the CCMP1205 protein list against RCC138
 proteins_shared.pl \
--e  1e-10 \
+-e 1e-10 \
 -l GCA_007859695.1_ASM785969v1_protein.products \
 -b RCC138.blastp.6
