@@ -40,9 +40,12 @@ while (my $file = shift@blast){
 	my %hits = ();
 	while (my $line = <HIT>){ #iterating line per line through BLAST (fmt 6) file 
 		chomp $line;
-		if ($line =~/^(\S+)\s+(\S+)\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+(\S+)/){
-			my $locus = $1; my $hit = $2; my $ev = $3;
-			if ($ev <= $evalue){
+		if ($line =~/^HOP50_\S+/){
+			my @column = split("\t", $line); #splitting file by columns
+                        my $locus = $column[0]; #storing 1st element from column in $locus
+                        my $hit = $column[1]; #storing 2nd element from column in $hit
+                        my $ev = $column[10]; #storing 11th element from column in $ev
+			if ($ev <= $evalue){ #only keeping hits below e-value cutoff
 				$hits{$locus} = $locus;
 				print "Working on: $hits{$locus}\n"; ## Debugging
 			}
@@ -53,8 +56,8 @@ while (my $file = shift@blast){
 		if ($line =~ /^#/){next;}
 		else {
 			my @array = split("\t",$line); #splitting line per tab
-			my $prot = $array[0]; #capturing first item in array
-			my $prod = $array[1]; #capturing second item in array 
+			my $prot = $array[0]; #capturing 1st item in array
+			my $prod = $array[1]; #capturing 2nd item in array 
 			if (exists $hits{$prot}){print OUT "$prot\t$prod\n"}
 			else {print OUT2 "$prot\t$prod\n";}
 				
