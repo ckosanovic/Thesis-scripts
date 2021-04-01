@@ -4,13 +4,13 @@ use strict; use warnings;
 use Getopt::Long qw(GetOptions);
 
 my $name = 'proteins_shared.pl';
-my $version = 0.2;
+my $version = '0.2';
 
 my $options = <<'OPTIONS';
 
 NAME             $name
 VERSION          $version
-SYNOPSIS         Determine shared vs. unique proteins from output of a homology search (diamond)
+SYNOPSIS         Find shared vs. unique proteins from output of DIAMOND homology search
 USAGE            proteins_shared.pl -e  min_evalue  -l protein_list -b blast_hits
 
 OPTIONS:
@@ -21,7 +21,7 @@ OPTIONS:
 OPTIONS
 die "\n$options\n\n" unless@ARGV;
 
-my $evalue = 1e-10;
+my $evalue = '1e-10';
 my $list; 
 my @blast;
 
