@@ -45,7 +45,7 @@ while(my $file = shift@vep){
 		if ($line =~ /(chromosome\S+)\t(chromosome\S+)\t\S+\t(HOP50_\S+)\tHOP50_\S+\t\S+\t(\S+)[^\n\r]*/){
 		my $locus = $3;
 		my $var_type = $4;
-		$variants{$locus} = $var_type;
+		$variants{$locus} = $var_type; #populating variant database with variant types
 			if (($var_type eq 'upstream_gene_variant') or ($var_type eq 'downstream_gene_variant')) {next;}
 			else {print OUT "$locus\t$variants{$locus}\n";
 			}
