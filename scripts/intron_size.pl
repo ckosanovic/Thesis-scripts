@@ -38,16 +38,16 @@ while (my $embl = shift@embl){
 	open OUT, ">", $output; 
 	while (my $line = <EMBL>){
 		chomp $line;
-		if (($line =~ /FT\s+intron\s+(\d+)..(\d+)/) | ($line =~ /FT\s+intron\s+complement\((\d+)..(\d+)\)/)){	
+		if (($line =~ /FT\s+intron\s+(\d+)..(\d+)/) | ($line =~ /FT\s+intron\s+complement\((\d+)..(\d+)\)/)){#regex to grab start & end coordinates of introns	
 			$start = $1;
 			$end = $2;
-			my $intron = ($end - $start) + 1;
-			push (@introns, $intron); 
+			my $intron = ($end - $start) + 1; #calculating length of intron
+			push (@introns, $intron); #storing all introns in an array
 		}
 	}
 }	
 
-my $count = scalar(@introns);
+my $count = scalar(@introns); #counting total introns in the array
 my $sum;
 foreach (@introns){
 	$sum += $_;
