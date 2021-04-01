@@ -8,7 +8,8 @@ use strict; use warnings; use Getopt::Long qw(GetOptions);
 my $usage = <<"OPTIONS";
 NAME		$name
 VERSION		$version
-SYNOPSIS	Sorts variants from variant_effect_output.txt VEP file to detect positions of consequences of interest (e.g. synonymous_variants, missense_variants) and their impact on genes
+SYNOPSIS	Sorts variants from variant_effect_output.txt VEP file to detect positions of consequences of interest 
+		(e.g. synonymous_variants, missense_variants) and their impact on genes
 USAGE		$name -in variant_effect_output.txt -p product_list.txt -o output.tsv [default: variant_types.tsv] 
 OPTIONS
 die "$usage\n" unless @ARGV;
@@ -46,7 +47,7 @@ while(my $file = shift@vep){
 		my $var_type = $4;
 		$variants{$locus} = $var_type;
 			if (($var_type eq 'upstream_gene_variant') or ($var_type eq 'downstream_gene_variant')) {next;}
-			else {print OUT "$locus\t$variants{$locus}\n";	##debugging
+			else {print OUT "$locus\t$variants{$locus}\n";
 			}
 		}
 	}
