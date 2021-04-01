@@ -15,7 +15,7 @@ USAGE            proteins_shared.pl -e  min_evalue  -l protein_list -b blast_hit
 
 OPTIONS:
 -e (--evalue)  minimum determined BLAST e-value [default = 1e-10]
--l (--list)    list of proteins [and products] queried against database
+-l (--list)    list of locus tags and proteins queried against database
 -b (--blast)   BLAST/DIAMOND tabular output (outfmt 6)
 
 OPTIONS
@@ -51,7 +51,7 @@ while (my $file = shift@blast){
 			}
 		}
 	}
-	while (my $line = <LIST>){ #iterating through list of protein and product, line per line
+	while (my $line = <LIST>){ #iterating through list of proteins
 	chomp $line;
 		if ($line =~ /^#/){next;}
 		else {
